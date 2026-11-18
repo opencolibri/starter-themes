@@ -1,0 +1,25 @@
+{# The header search slot, shared by every theme (see HeaderLayout). Placed in the logo row or on a row of its own by
+   _header-layout.scss, after the logo row on mobile; with the "icon" placement, a magnifier opens it in a dropdown.
+   A theme restyles the search, or ships search_form.html.twig to replace the form. #}
+{% if hookable_metadata.configuration.placement|default('inline') == 'icon' %}
+    <div class="col-auto dropdown header-search header-search--toggle">
+        <button type="button" class="btn btn-icon btn-transparent px-0 header-search__toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-display="static" aria-expanded="false" aria-label="{{ 'header_layout.search.toggle'|trans({}, 'themes_header_layout') }}" title="{{ 'header_layout.search.toggle'|trans({}, 'themes_header_layout') }}">
+            <svg class="header-search__toggle-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end header-search__panel">
+            {% include 'shop/shared/layout/header_layout/search_form.html.twig' with {id: 'header-search'} %}
+        </div>
+    </div>
+    {# The field gets the focus when the dropdown opens. #}
+    <script>
+        document.addEventListener('shown.bs.dropdown', (event) => {
+            if (event.target.classList.contains('header-search__toggle')) {
+                event.target.closest('.header-search')?.querySelector('input[type="search"]')?.focus();
+            }
+        });
+    </script>
+{% else %}
+    <div class="col-12 header-search">
+        {% include 'shop/shared/layout/header_layout/search_form.html.twig' with {id: 'header-search'} %}
+    </div>
+{% endif %}

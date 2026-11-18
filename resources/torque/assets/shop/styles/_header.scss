@@ -145,10 +145,6 @@ header .navbar {
 
 // Search: a wide field closed by a navy button with a magnifier, between the logo and the account links.
 
-.torque-header-search {
-  max-width: 44rem;
-}
-
 .torque-search {
   display: flex;
   align-items: stretch;
@@ -353,48 +349,25 @@ header .dropdown-item {
   }
 }
 
-// Desktop: the menu fills the space between the logo and the account links and is centered in it.
-
-// Desktop: the logo, the account links and the cart on the first row, then the category navigation on a row of its
-// own, under a hairline, as in a trade catalogue.
+// Desktop: where the menu and the search go is the header layout of the theme (_header-layout.scss): the search in
+// the logo row and the menu on a row of its own by default, under a hairline, as in a trade catalogue.
 @media (min-width: 992px) {
-  // The header content is not in <header>: it is the bordered block that holds the category navigation.
-  .py-4:has(> .container > .row > .torque-category-nav) {
+  .header-menu--below .py-4:has(> .container > .row > .torque-category-nav),
+  .header-menu--bar .py-4:has(> .container > .row > .torque-category-nav) {
     padding-top: 1.1rem !important;
-    padding-bottom: 0 !important;
-  }
-
-  .row:has(> .torque-category-nav) {
-    row-gap: 1rem;
-  }
-
-  .row:has(> .torque-category-nav) > :not(.torque-category-nav):first-child {
-    margin-right: 2rem;
-  }
-
-  .torque-header-search {
-    margin-right: auto;
   }
 
   .torque-category-nav {
-    order: 10;
-    flex: 0 0 100%;
-    max-width: 100%;
-    border-top: 1px solid $line;
-  }
-
-  .torque-category-nav__menu {
-    width: 100%;
+    border-top-color: $line !important;
   }
 
   .torque-category-nav__menu .offcanvas-body {
-    flex-grow: 1;
-    justify-content: flex-start;
     padding: 0 !important;
   }
 
-  .torque-category-nav__links {
-    justify-content: flex-start;
+  // On a row of its own, the menu spreads its links out.
+  .header-menu--below .torque-category-nav__links,
+  .header-menu--bar .torque-category-nav__links {
     gap: 0.25rem 1.75rem;
   }
 
@@ -482,14 +455,4 @@ header .dropdown-item {
   max-width: 12rem;
   max-height: 2.75rem;
   object-fit: contain;
-}
-
-
-// Phones and tablets: the search takes a row of its own under the logo, the account links and the cart.
-@media (max-width: 991.98px) {
-  .torque-header-search {
-    order: 20;
-    max-width: none;
-    margin-top: 0.75rem;
-  }
 }

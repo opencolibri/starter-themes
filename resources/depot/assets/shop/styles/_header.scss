@@ -288,44 +288,23 @@ header .dropdown-item {
   }
 }
 
-// Desktop: the menu fills the space between the logo and the account links and is centered in it.
-
-// Desktop: the logo, the account links and the cart on the first row, then the category navigation on a row of its
-// own, under a hairline, as in a trade catalogue.
+// Desktop: where the menu goes is the header layout of the theme (_header-layout.scss): on a row of its own by
+// default, under a hairline, as in a trade catalogue.
 @media (min-width: 992px) {
-  // The header content is not in <header>: it is the bordered block that holds the category navigation.
-  .py-4:has(> .container > .row > .depot-category-nav) {
+  .header-menu--below .py-4:has(> .container > .row > .depot-category-nav),
+  .header-menu--bar .py-4:has(> .container > .row > .depot-category-nav) {
     padding-top: 1.1rem !important;
-    padding-bottom: 0 !important;
-  }
-
-  .row:has(> .depot-category-nav) {
-    row-gap: 1rem;
-  }
-
-  .row:has(> .depot-category-nav) > :not(.depot-category-nav):first-child {
-    margin-right: auto;
   }
 
   .depot-category-nav {
-    order: 10;
-    flex: 0 0 100%;
-    max-width: 100%;
-    border-top: 1px solid $line;
-  }
-
-  .depot-category-nav__menu {
-    width: 100%;
+    border-top-color: $line !important;
   }
 
   .depot-category-nav__menu .offcanvas-body {
-    flex-grow: 1;
-    justify-content: flex-start;
     padding: 0 !important;
   }
 
   .depot-category-nav__links {
-    justify-content: flex-start;
     gap: 0.25rem 1.75rem;
   }
 

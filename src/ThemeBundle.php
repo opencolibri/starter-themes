@@ -13,6 +13,7 @@ use OpenColibri\Starter\Core\Storefront\Brand;
 use OpenColibri\Starter\Core\Storefront\Hero;
 use OpenColibri\Starter\Core\Util\Docker;
 use OpenColibri\Starter\Core\Util\Yaml;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
 use function Castor\fs;
@@ -29,8 +30,8 @@ use function Castor\fs;
  *    completed with the app definition it overrides, as the Symfony config merges them under one name;
  *  - the styles go to assets/themes/<theme>/, built as the "theme-<theme>" Encore entry and linked after the
  *    app styles;
- *  - the color scheme switcher is installed in every theme, so the channels without a theme keep the Sylius
- *    look. The other config files (filter sets...) are shared by the app.
+ *  - the color scheme switcher and the header layout (see HeaderLayout) are installed in every theme, so the
+ *    channels without a theme keep the Sylius look. The other config files (filter sets...) are shared by the app.
  *
  * install() and remove() do not build the assets nor clear the cache: the caller does it once for all the
  * themes it changes.
@@ -109,7 +110,8 @@ final readonly class ThemeBundle
         /** @var array<string, string> $hooksFiles path in the hooks directory => source file */
         $hooksFiles = [];
 
-        foreach ([self::resourcesDir($theme), ColorScheme::resourcesDir()] as $resourcesDir) {
+        // The header layout first: a theme may override its templates (its search).
+        foreach ([HeaderLayout::resourcesDir(), self::resourcesDir($theme), ColorScheme::resourcesDir()] as $resourcesDir) {
             foreach ((new Finder())->files()->in($resourcesDir) as $file) {
                 $path = $file->getRelativePathname();
 
@@ -142,6 +144,7 @@ final readonly class ThemeBundle
         }
 
         fs()->dumpFile($hooksDir . '/stylesheets.php', self::stylesheetsHooks($theme));
+        fs()->dumpFile($hooksDir . '/' . substr(HeaderLayout::HOOKS_FILE, \strlen(self::HOOKS_SOURCE_DIR . '/')), HeaderLayout::hooksFile($theme, HeaderLayout::resolve($theme, HeaderLayout::options()), self::hookPrefix($theme)));
     }
 
     public static function remove(App $app, string $theme): void
@@ -310,9 +313,9 @@ final readonly class ThemeBundle
      *
      * @return array<string, array<string, array<string, mixed>>>
      */
-    private static function readHooks(string $file): array
+    public static function readHooks(string $file): array
     {
-        $statements = (new ParserFactory())->createForNewestSupportedVersion()->parse(fs()->readFile($file)) ?? [];
+        $statements = (new ParserFactory())->createForNewestSupportedVersion()->parse((new Filesystem())->readFile($file)) ?? [];
         $config = (new NodeFinder())->findFirst(
             $statements,
             static fn(Node $node): bool => $node instanceof Node\Expr\Array_
@@ -326,7 +329,7 @@ final readonly class ThemeBundle
         return (new ConstExprEvaluator())->evaluateDirectly($config)['sylius_twig_hooks']['hooks'] ?? [];
     }
 
-    private static function export(mixed $value, int $depth = 0): string
+    public static function export(mixed $value, int $depth = 0): string
     {
         if (!\is_array($value)) {
             return var_export($value, true);

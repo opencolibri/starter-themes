@@ -13,6 +13,7 @@ use OpenColibri\Starter\Core\Util\Javascript;
 use OpenColibri\Starter\Core\Util\Symfony;
 use OpenColibri\Starter\Core\Util\Yaml;
 use OpenColibri\Starter\Themes\ColorScheme;
+use OpenColibri\Starter\Themes\HeaderLayout;
 
 use function Castor\finder;
 use function Castor\fs;
@@ -35,6 +36,7 @@ final class ArenaInstaller implements InstallerInterface
         Hero::install($app);
         Brand::install($app);
         ColorScheme::install($app);
+        HeaderLayout::install($app, $this->name());
 
         $resourcesDir = \dirname(__DIR__, 2) . '/resources/arena';
 

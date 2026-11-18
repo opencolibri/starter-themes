@@ -1,0 +1,3 @@
+{# Header layout of the theme (see HeaderLayout): the classes _header-layout.scss lays the header out with. #}
+{% set layout = hookable_metadata.configuration %}
+ header-menu--{{ layout.menu|default('inline') }} header-search--{{ layout.search|default('none') }}

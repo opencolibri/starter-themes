@@ -1,0 +1,6 @@
+header_layout:
+    search:
+        label: 'Search the catalogue'
+        placeholder: 'Search a product…'
+        submit: 'Search'
+        toggle: 'Search'

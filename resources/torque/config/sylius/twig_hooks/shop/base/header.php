@@ -21,10 +21,6 @@ return App::config([
                 'logo' => [
                     'template' => 'shop/shared/layout/header/logo.html.twig',
                 ],
-                'torque_search' => [
-                    'template' => 'shop/shared/layout/base/header/content/search.html.twig',
-                    'priority' => 280,
-                ],
                 'cart' => [
                     'component' => 'sylius_shop:cart:widget',
                     'props' => [

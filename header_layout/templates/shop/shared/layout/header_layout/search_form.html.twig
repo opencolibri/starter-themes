@@ -1,0 +1,14 @@
+{# A product search on the whole catalogue: the listing of the menu taxon includes its descendants
+   (include_all_descendants) and filters on the product names. Renders nothing without a menu taxon. #}
+{% set header_search_taxon = sylius.channel.menuTaxon|default(null) %}
+{% if header_search_taxon is not null and header_search_taxon.slug %}
+    {% set header_search_query = app.request.query.all('criteria')['search']['value']|default('') %}
+    <form class="header-search__form" action="{{ path('sylius_shop_product_index', {'slug': header_search_taxon.slug}) }}" method="get" role="search" aria-label="{{ 'header_layout.search.label'|trans({}, 'themes_header_layout') }}">
+        <label class="visually-hidden" for="{{ id }}">{{ 'header_layout.search.label'|trans({}, 'themes_header_layout') }}</label>
+        <input class="form-control header-search__input" type="search" id="{{ id }}" name="criteria[search][value]" value="{{ header_search_query is iterable ? '' : header_search_query }}" placeholder="{{ 'header_layout.search.placeholder'|trans({}, 'themes_header_layout') }}" autocomplete="off">
+        <button class="btn btn-primary header-search__button" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+            <span class="visually-hidden">{{ 'header_layout.search.submit'|trans({}, 'themes_header_layout') }}</span>
+        </button>
+    </form>
+{% endif %}

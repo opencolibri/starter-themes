@@ -24,13 +24,6 @@ return App::config([
                 'logo' => [
                     'template' => 'shop/shared/layout/header/logo.html.twig',
                 ],
-                'drive_search' => [
-                    'component' => 'sylius_shop:common:taxon_menu',
-                    'props' => [
-                        'template' => 'shop/shared/layout/base/header/content/search.html.twig',
-                    ],
-                    'priority' => 250,
-                ],
                 'drive_slot' => [
                     'template' => 'shop/shared/layout/base/header/content/slot.html.twig',
                     'priority' => 225,

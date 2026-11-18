@@ -8,6 +8,7 @@ use OpenColibri\Starter\Core\App;
 use OpenColibri\Starter\Core\Component\RemoverInterface;
 use OpenColibri\Starter\Core\Util\Javascript;
 use OpenColibri\Starter\Themes\ColorScheme;
+use OpenColibri\Starter\Themes\HeaderLayout;
 
 use function Castor\finder;
 use function Castor\fs;
@@ -33,5 +34,6 @@ final class PromptRemover implements RemoverInterface
         }
         Javascript::removeImport($app, 'assets/shop/entrypoint.js', './styles/app.scss');
         ColorScheme::remove($app);
+        HeaderLayout::remove($app);
     }
 }

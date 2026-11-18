@@ -1,0 +1,181 @@
+// Header layout shared by every theme (see HeaderLayout and docs/themes/header-layout.md): where the category menu
+// and the search go, from the header-menu--<menu> and header-search--<search> classes of the page wrapper.
+// Imported at the root of app.scss (outside the light and dark scopes): it only lays the header out, and only relies
+// on Bootstrap's runtime variables and currentColor, so it follows the active palette. Each theme keeps the look of
+// its menu (links, dropdowns, off-canvas panel on mobile) and of its search.
+//
+// The header row is the Sylius one (.py-4 > .container > .row): the logo column first, then the category menu
+// (.header-category-nav), the search (.header-search), the account links and the cart.
+
+// Search: a field closed by a button with a magnifier. A theme restyles it, or replaces the search template.
+
+.header-search__form {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.header-search__input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.header-search__button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 2.2;
+  }
+}
+
+// Search "icon": a magnifier in the logo row, like the color scheme switcher, that opens the search in a dropdown
+// panel, styled by the theme like its other header dropdowns.
+
+.header-search__toggle-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.header-search__panel {
+  width: min(26rem, calc(100vw - 2rem));
+  padding: 0.75rem;
+}
+
+// Mobile: the menu opens in an off-canvas panel, the search takes a row of its own under the logo row (or stays a
+// magnifier, its panel under the header).
+
+@media (max-width: 991.98px) {
+  .header-search:not(.header-search--toggle) {
+    order: 20;
+    margin-top: 0.75rem;
+  }
+
+  .row:has(> .header-search--toggle) {
+    position: relative;
+  }
+
+  .header-search--toggle {
+    position: static;
+  }
+
+  .header-search--toggle .header-search__panel {
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+}
+
+@media (min-width: 992px) {
+  // Menu "below" and "bar": the logo opens the row, the account links and the cart close it, and the menu wraps to a
+  // row of its own under them, which ends the header.
+  .header-menu--below,
+  .header-menu--bar {
+    .py-4:has(> .container > .row > .header-category-nav) {
+      padding-bottom: 0 !important;
+    }
+
+    .row:has(> .header-category-nav) {
+      row-gap: 1rem;
+    }
+
+    .row:has(> .header-category-nav) > :first-child {
+      flex: 0 0 auto;
+      width: auto;
+      margin-right: auto;
+    }
+
+    .header-category-nav {
+      order: 10;
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .header-category-nav .navbar {
+      width: 100%;
+    }
+
+    .header-category-nav .offcanvas-body {
+      flex-grow: 1;
+    }
+  }
+
+  // Menu "below": inside the page container, under a hairline, from the left edge, as in a catalogue.
+  .header-menu--below {
+    .header-category-nav {
+      border-top: 1px solid var(--bs-border-color);
+    }
+
+    .header-category-nav .offcanvas-body,
+    .header-category-nav .navbar-nav {
+      justify-content: flex-start;
+    }
+  }
+
+  // Menu "bar": a band that runs to the window edges, tinted with the text color, the links centered in it. The column
+  // stays in the container: its background is spread to the edges by a shadow, clipped to its height.
+  .header-menu--bar {
+    .header-category-nav {
+      --header-bar-bg: color-mix(in srgb, currentColor 5%, transparent);
+
+      border-top: 1px solid var(--bs-border-color);
+      background-color: var(--header-bar-bg);
+      box-shadow: 0 0 0 100vmax var(--header-bar-bg);
+      clip-path: inset(0 -100vmax);
+    }
+
+    .header-category-nav .offcanvas-body,
+    .header-category-nav .navbar-nav {
+      justify-content: center;
+    }
+  }
+
+  // Search "inline": in the logo row, between the menu and the account links. Next to the menu, it stays compact and
+  // leaves the room to the menu links.
+  .header-search--inline .header-search {
+    flex: 0 1 15rem;
+    width: auto;
+    min-width: 11rem;
+  }
+
+  // With the menu on its own row, the search follows the logo and takes the room the menu left.
+  .header-menu--below.header-search--inline,
+  .header-menu--bar.header-search--inline {
+    .row:has(> .header-category-nav) > :first-child {
+      margin-right: 2rem;
+    }
+
+    .header-search {
+      flex: 1 1 16rem;
+      max-width: 44rem;
+      margin-right: auto;
+    }
+  }
+
+  // Search "below": on a row of its own under the logo row, before the menu when the menu has a row of its own too.
+  // The logo still pushes the search toggle, the account links and the cart to the end of the logo row, when no menu
+  // fills it.
+  .header-search--below .row:has(> .header-search) > :first-child,
+  .header-search--icon .row:has(> .header-search) > :first-child {
+    margin-right: auto;
+  }
+
+  .header-search--below .header-search {
+    order: 9;
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-top: 1rem;
+  }
+
+  .header-menu--below.header-search--below .header-search,
+  .header-menu--bar.header-search--below .header-search {
+    margin-top: 0;
+  }
+}

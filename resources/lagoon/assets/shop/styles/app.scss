@@ -3,6 +3,7 @@
 // Typography relies on InterVariable, already shipped by the Sylius shop.
 
 @import "color-scheme";
+@import "header-layout";
 
 // The theme is compiled once per color scheme, scoped on the <html data-bs-theme> attribute set by the
 // color scheme switcher. Light is also the scheme without JavaScript.

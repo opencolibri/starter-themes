@@ -1,0 +1,6 @@
+header_layout:
+    search:
+        label: 'Rechercher dans le catalogue'
+        placeholder: 'Rechercher un produit…'
+        submit: 'Rechercher'
+        toggle: 'Rechercher'

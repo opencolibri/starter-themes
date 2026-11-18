@@ -269,28 +269,16 @@ header .dropdown-item {
   }
 }
 
-// Desktop: the logo opens the row, the account and the cart close it, and the category menu wraps to a row of its
-// own below them.
+// Desktop: where the menu goes is the header layout of the theme (_header-layout.scss): on a row of its own by default,
+// without a hairline, the header keeping its bottom spacing.
 
 @media (min-width: 992px) {
-  .row:has(> .culture-category-nav) {
-    row-gap: 0.75rem;
+  .header-menu--below .culture-category-nav {
+    border-top: 0 !important;
   }
 
-  .row:has(> .culture-category-nav) > .col:has(> .culture-logo--header) {
-    flex: 0 0 auto;
-    width: auto;
-    margin-right: auto;
-  }
-
-  .culture-category-nav {
-    order: 10;
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-
-  .culture-category-nav__menu {
-    width: 100%;
+  .header-menu--below .py-4:has(> .container > .row > .culture-category-nav) {
+    padding-bottom: 1.5rem !important;
   }
 }
 

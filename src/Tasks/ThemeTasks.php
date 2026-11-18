@@ -12,6 +12,7 @@ use OpenColibri\Starter\Core\Component\ComponentChoices;
 use OpenColibri\Starter\Core\Util\Assets;
 use OpenColibri\Starter\Core\Util\Docker;
 use OpenColibri\Starter\Core\Util\Symfony;
+use OpenColibri\Starter\Themes\HeaderLayout;
 use OpenColibri\Starter\Themes\ThemeBundle;
 use OpenColibri\Starter\Themes\Themes;
 
@@ -35,6 +36,10 @@ final class ThemeTasks
                 ?string $theme = null,
                 #[AsOption(description: 'Where to install the theme: "flat" (over the app, for every channel) or "theme-bundle" (next to the other themes, picked by each channel)')]
                 string $target = 'flat',
+                #[AsOption(description: 'Where the category menu goes: "inline" (in the logo row), "below" (on a row of its own) or "bar" (in a full-width band). Default: the theme layout')]
+                ?string $menu = null,
+                #[AsOption(description: 'Where the header search goes: "none", "inline" (in the logo row), "below" (on a row of its own) or "icon" (a magnifier that opens it in a dropdown). Default: the theme layout')]
+                ?string $search = null,
             ) use ($app): void {
                 if (!\in_array($target, ['flat', ThemeBundle::TARGET], true)) {
                     io()->error(\sprintf('Unknown target "%s": use "flat" or "%s".', $target, ThemeBundle::TARGET));
@@ -80,6 +85,20 @@ final class ThemeTasks
                     io()->error(\sprintf('Unknown theme installer "%s", skipping.', $theme));
 
                     return;
+                }
+
+                if ('default' !== $theme) {
+                    $errors = HeaderLayout::validate($theme, $menu, $search);
+
+                    if ([] !== $errors) {
+                        io()->error($errors);
+
+                        return;
+                    }
+
+                    HeaderLayout::configure($menu, $search);
+                } elseif (null !== $menu || null !== $search) {
+                    io()->warning('The default theme has no header layout options: --menu and --search are ignored.');
                 }
 
                 if (ThemeBundle::TARGET === $target) {
@@ -167,6 +186,64 @@ final class ThemeTasks
                 ));
 
                 io()->success(\sprintf('The "%s" channel now uses the "%s" theme.', $channel, $theme));
+            },
+        ];
+
+        yield [
+            'task' => new AsTask('header', 'sylius:theme', 'Change where the header shows the category menu and the search'),
+            'function' => static function (
+                #[AsOption(description: 'Where the category menu goes: "inline" (in the logo row), "below" (on a row of its own) or "bar" (in a full-width band)')]
+                ?string $menu = null,
+                #[AsOption(description: 'Where the header search goes: "none", "inline" (in the logo row), "below" (on a row of its own) or "icon" (a magnifier that opens it in a dropdown)')]
+                ?string $search = null,
+                #[AsOption(description: 'The theme to change, among the themes installed with the theme-bundle target (default: the theme installed over the app)')]
+                ?string $theme = null,
+            ) use ($app): void {
+                $hooksFile = null === $theme
+                    ? $app->directory() . '/' . HeaderLayout::HOOKS_FILE
+                    : $app->directory() . '/' . ThemeBundle::HOOKS_DIR . '/' . $theme . '/' . substr(HeaderLayout::HOOKS_FILE, \strlen('config/sylius/twig_hooks/'));
+
+                $current = HeaderLayout::read($hooksFile);
+
+                if (null === $current) {
+                    io()->error(null === $theme
+                        ? 'No theme is installed over the app: install one with "castor sylius:theme:setup <theme>", or pick a theme-bundle theme with --theme.'
+                        : \sprintf('The "%s" theme is not installed with the theme-bundle target.', $theme));
+
+                    return;
+                }
+
+                if (null === $menu && null === $search) {
+                    io()->text(\sprintf(
+                        'The "%s" theme shows the menu "%s" and the search "%s". Change them with --menu and --search.',
+                        $current['theme'],
+                        $current['options']['menu'],
+                        $current['options']['search'],
+                    ));
+
+                    return;
+                }
+
+                $errors = HeaderLayout::validate($current['theme'], $menu, $search);
+
+                if ([] !== $errors) {
+                    io()->error($errors);
+
+                    return;
+                }
+
+                HeaderLayout::update($hooksFile, array_filter(['menu' => $menu, 'search' => $search], static fn(?string $value): bool => null !== $value));
+                // The layout is hook configuration, styled for every placement: no asset build needed.
+                Symfony::cacheClear($app);
+
+                $updated = HeaderLayout::read($hooksFile);
+
+                io()->success(\sprintf(
+                    'The "%s" theme now shows the menu "%s" and the search "%s".',
+                    $current['theme'],
+                    $updated['options']['menu'] ?? '?',
+                    $updated['options']['search'] ?? '?',
+                ));
             },
         ];
     }
