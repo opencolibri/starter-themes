@@ -116,7 +116,15 @@ final class HeaderLayout
 
     public static function install(App $app, string $theme): void
     {
+        $themeDir = \dirname(__DIR__) . '/resources/' . $theme;
+
         foreach ((new Finder())->files()->in(self::resourcesDir()) as $file) {
+            // The theme replaces this file (its search form): the theme installer copies it, without overwriting a
+            // newer file, so it must not be written here first.
+            if (is_file($themeDir . '/' . $file->getRelativePathname())) {
+                continue;
+            }
+
             fs()->copy($file->getPathname(), $app->directory() . '/' . $file->getRelativePathname(), true);
         }
 
