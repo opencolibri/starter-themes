@@ -18,6 +18,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
 use function Castor\fs;
+use function Castor\io;
 
 /**
  * The theme-bundle install target: every theme lives in its own Sylius theme, and each channel picks one.
@@ -81,6 +82,34 @@ final readonly class ThemeBundle
         sort($themes);
 
         return $themes;
+    }
+
+    /**
+     * The themes a channel can pick: the Sylius look ("default"), then the installed ones.
+     *
+     * @return list<string>
+     */
+    public static function pickable(App $app): array
+    {
+        return [ThemeName::DEFAULT, ...self::installed($app)];
+    }
+
+    /**
+     * Installs every given theme next to each other, from scratch: the hooks of each theme are generated from the app
+     * hooks, which an outdated theme could break. The assets are built once afterwards, by the caller.
+     *
+     * @param list<string> $themes
+     */
+    public static function installAll(App $app, array $themes): void
+    {
+        foreach (self::installed($app) as $theme) {
+            self::remove($app, $theme);
+        }
+
+        foreach ($themes as $theme) {
+            io()->section(\sprintf('Installing the "%s" theme', $theme));
+            self::install($app, $theme);
+        }
     }
 
     /** The name sylius/theme-bundle gives the theme, stored in sylius_channel.theme_name. */

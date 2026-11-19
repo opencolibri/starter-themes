@@ -7,7 +7,9 @@ namespace OpenColibri\Starter\Themes\Tests\Unit;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use OpenColibri\Starter\Core\App;
 use OpenColibri\Starter\Themes\ThemeBundle;
+use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversClass(ThemeBundle::class)]
 final class ThemeBundleTest extends TestCase
@@ -78,5 +80,25 @@ final class ThemeBundleTest extends TestCase
         static::assertSame('retro-gaming:', ThemeBundle::hookPrefix('retro_gaming'));
         static::assertSame('opencolibri/retro-gaming', ThemeBundle::themeName('retro_gaming'));
         static::assertMatchesRegularExpression('/^[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+$/', ThemeBundle::themeName('retro_gaming'));
+    }
+
+    public function testAChannelCanPickTheSyliusLookOrAnInstalledTheme(): void
+    {
+        $directory = sys_get_temp_dir() . '/theme_bundle_' . bin2hex(random_bytes(4));
+        $filesystem = new Filesystem();
+
+        try {
+            static::assertSame(['default'], ThemeBundle::pickable(new App('app', $directory)));
+
+            foreach (['volt', 'cellar'] as $theme) {
+                $filesystem->dumpFile($directory . '/' . ThemeBundle::THEMES_DIR . '/' . $theme . '/composer.json', '{}');
+            }
+            // Not a theme: no composer.json.
+            $filesystem->mkdir($directory . '/' . ThemeBundle::THEMES_DIR . '/notes');
+
+            static::assertSame(['default', 'cellar', 'volt'], ThemeBundle::pickable(new App('app', $directory)));
+        } finally {
+            $filesystem->remove($directory);
+        }
     }
 }
