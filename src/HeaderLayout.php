@@ -216,6 +216,62 @@ final class HeaderLayout
     }
 
     /**
+     * The generated hooks file of the theme installed over the app (null), or of a theme installed with the
+     * theme-bundle target.
+     */
+    public static function hooksFileOf(App $app, ?string $theme = null): string
+    {
+        if (null === $theme) {
+            return $app->directory() . '/' . self::HOOKS_FILE;
+        }
+
+        return $app->directory() . '/' . ThemeBundle::HOOKS_DIR . '/' . $theme . '/' . substr(self::HOOKS_FILE, \strlen('config/sylius/twig_hooks/'));
+    }
+
+    /**
+     * Where the header of a theme shows the menu and the search, and the placements it supports.
+     *
+     * @param array{menu: string, search: string} $options
+     *
+     * @return array{menu: string, search: string, menus: list<string>, searches: list<string>}
+     */
+    public static function describe(string $theme, array $options): array
+    {
+        return [
+            'menu' => $options['menu'],
+            'search' => $options['search'],
+            'menus' => self::menuPlacements($theme),
+            'searches' => self::SEARCH_PLACEMENTS,
+        ];
+    }
+
+    /**
+     * The header layout of every installed theme: the one installed over the app, then the theme-bundle ones. A theme
+     * installed before the header layout existed has none, and is left out.
+     *
+     * @return array<string, array{menu: string, search: string, menus: list<string>, searches: list<string>, target: string}>
+     */
+    public static function all(App $app): array
+    {
+        $layouts = [];
+        $flat = self::read(self::hooksFileOf($app));
+
+        if (null !== $flat) {
+            $layouts[$flat['theme']] = self::describe($flat['theme'], $flat['options']) + ['target' => 'flat'];
+        }
+
+        foreach (ThemeBundle::installed($app) as $theme) {
+            $current = self::read(self::hooksFileOf($app, $theme));
+
+            if (null !== $current) {
+                $layouts[$theme] = self::describe($theme, $current['options']) + ['target' => 'theme-bundle'];
+            }
+        }
+
+        return $layouts;
+    }
+
+    /**
      * @return array{theme: string, options: array{menu: string, search: string}}|null
      */
     public static function read(string $hooksFile): ?array

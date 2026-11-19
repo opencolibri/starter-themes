@@ -190,60 +190,109 @@ final class ThemeTasks
         ];
 
         yield [
-            'task' => new AsTask('header', 'sylius:theme', 'Change where the header shows the category menu and the search'),
+            'task' => new AsTask('header', 'sylius:theme', 'Show or change where the header shows the category menu and the search'),
             'function' => static function (
                 #[AsOption(description: 'Where the category menu goes: "inline" (in the logo row), "below" (on a row of its own) or "bar" (in a full-width band)')]
                 ?string $menu = null,
                 #[AsOption(description: 'Where the header search goes: "none", "inline" (in the logo row), "below" (on a row of its own) or "icon" (a magnifier that opens it in a dropdown)')]
                 ?string $search = null,
-                #[AsOption(description: 'The theme to change, among the themes installed with the theme-bundle target (default: the theme installed over the app)')]
+                #[AsOption(description: 'The theme to show or change, among the themes installed with the theme-bundle target (default: the theme installed over the app)')]
                 ?string $theme = null,
-            ) use ($app): void {
-                $hooksFile = null === $theme
-                    ? $app->directory() . '/' . HeaderLayout::HOOKS_FILE
-                    : $app->directory() . '/' . ThemeBundle::HOOKS_DIR . '/' . $theme . '/' . substr(HeaderLayout::HOOKS_FILE, \strlen('config/sylius/twig_hooks/'));
+                #[AsOption(description: 'Show the layout of every installed theme')]
+                bool $all = false,
+                #[AsOption(description: 'Output format: "text" or "json" ({"themes": {"<theme>": {"menu", "search", "menus", "searches"}}})')]
+                string $format = 'text',
+            ) use ($app): int {
+                $errors = io()->getErrorStyle();
 
+                if (!\in_array($format, ['text', 'json'], true)) {
+                    $errors->error(\sprintf('Unknown format "%s": use "text" or "json".', $format));
+
+                    return 1;
+                }
+
+                // Every layout, or the layout of one theme.
+                $print = static function (array $layouts) use ($format): void {
+                    if ('json' === $format) {
+                        io()->writeln(json_encode(['themes' => (object) $layouts], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES));
+
+                        return;
+                    }
+
+                    foreach ($layouts as $name => $layout) {
+                        io()->text(\sprintf('The "%s" theme shows the menu "%s" and the search "%s".', $name, $layout['menu'], $layout['search']));
+                    }
+                };
+
+                if ($all) {
+                    if (null !== $menu || null !== $search || null !== $theme) {
+                        $errors->error('--all only shows the layouts: change one theme at a time, with --theme.');
+
+                        return 1;
+                    }
+
+                    $layouts = HeaderLayout::all($app);
+
+                    if ([] === $layouts) {
+                        $errors->error('No installed theme has a header layout: install one with "castor sylius:theme:setup <theme>".');
+
+                        return 1;
+                    }
+
+                    $print($layouts);
+
+                    return 0;
+                }
+
+                $hooksFile = HeaderLayout::hooksFileOf($app, $theme);
                 $current = HeaderLayout::read($hooksFile);
 
                 if (null === $current) {
-                    io()->error(null === $theme
+                    $errors->error(null === $theme
                         ? 'No theme is installed over the app: install one with "castor sylius:theme:setup <theme>", or pick a theme-bundle theme with --theme.'
-                        : \sprintf('The "%s" theme is not installed with the theme-bundle target.', $theme));
+                        : \sprintf('The "%s" theme is not installed with the theme-bundle target, or was installed before the header layout existed: reinstall it.', $theme));
 
-                    return;
+                    return 1;
                 }
 
                 if (null === $menu && null === $search) {
-                    io()->text(\sprintf(
-                        'The "%s" theme shows the menu "%s" and the search "%s". Change them with --menu and --search.',
-                        $current['theme'],
-                        $current['options']['menu'],
-                        $current['options']['search'],
-                    ));
+                    $print([$current['theme'] => HeaderLayout::describe($current['theme'], $current['options'])]);
 
-                    return;
+                    if ('text' === $format) {
+                        io()->text('Change them with --menu and --search.');
+                    }
+
+                    return 0;
                 }
 
-                $errors = HeaderLayout::validate($current['theme'], $menu, $search);
+                $validation = HeaderLayout::validate($current['theme'], $menu, $search);
 
-                if ([] !== $errors) {
-                    io()->error($errors);
+                if ([] !== $validation) {
+                    $errors->error($validation);
 
-                    return;
+                    return 1;
                 }
 
                 HeaderLayout::update($hooksFile, array_filter(['menu' => $menu, 'search' => $search], static fn(?string $value): bool => null !== $value));
                 // The layout is hook configuration, styled for every placement: no asset build needed.
                 Symfony::cacheClear($app);
 
-                $updated = HeaderLayout::read($hooksFile);
+                $updated = HeaderLayout::read($hooksFile) ?? $current;
+
+                if ('json' === $format) {
+                    $print([$current['theme'] => HeaderLayout::describe($current['theme'], $updated['options'])]);
+
+                    return 0;
+                }
 
                 io()->success(\sprintf(
                     'The "%s" theme now shows the menu "%s" and the search "%s".',
                     $current['theme'],
-                    $updated['options']['menu'] ?? '?',
-                    $updated['options']['search'] ?? '?',
+                    $updated['options']['menu'],
+                    $updated['options']['search'],
                 ));
+
+                return 0;
             },
         ];
     }
