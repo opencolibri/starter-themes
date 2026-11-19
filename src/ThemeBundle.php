@@ -9,6 +9,7 @@ use PhpParser\Node;
 use PhpParser\NodeFinder;
 use PhpParser\ParserFactory;
 use OpenColibri\Starter\Core\App;
+use OpenColibri\Starter\Core\Theme\ThemeName;
 use OpenColibri\Starter\Core\Storefront\Brand;
 use OpenColibri\Starter\Core\Storefront\Hero;
 use OpenColibri\Starter\Core\Util\Docker;
@@ -85,7 +86,7 @@ final readonly class ThemeBundle
     /** The name sylius/theme-bundle gives the theme, stored in sylius_channel.theme_name. */
     public static function themeName(string $theme): string
     {
-        return 'opencolibri/' . self::slug($theme);
+        return ThemeName::of($theme) ?? throw new \InvalidArgumentException('The Sylius look has no theme name.');
     }
 
     /** Matches App\Themes\ThemeHookRenderer::prefix(), which reads the theme name. */

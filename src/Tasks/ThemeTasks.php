@@ -158,23 +158,23 @@ final class ThemeTasks
                 string $channel,
                 #[AsArgument(description: 'Theme, or "default" for the app look')]
                 string $theme = 'default',
-            ) use ($app): void {
+            ) use ($app): int {
                 if (!preg_match('/^[A-Za-z0-9_.-]+$/', $channel)) {
-                    io()->error(\sprintf('Invalid channel code "%s".', $channel));
+                    io()->getErrorStyle()->error(\sprintf('Invalid channel code "%s".', $channel));
 
-                    return;
+                    return 1;
                 }
 
                 $installedThemes = ThemeBundle::installed($app);
 
                 if ('default' !== $theme && !\in_array($theme, $installedThemes, true)) {
-                    io()->error(\sprintf(
+                    io()->getErrorStyle()->error(\sprintf(
                         'The "%s" theme is not installed with the theme-bundle target. Installed themes: %s.',
                         $theme,
                         [] === $installedThemes ? 'none' : implode(', ', $installedThemes),
                     ));
 
-                    return;
+                    return 1;
                 }
 
                 $themeName = 'default' === $theme ? 'NULL' : \sprintf("'%s'", ThemeBundle::themeName($theme));
@@ -186,6 +186,8 @@ final class ThemeTasks
                 ));
 
                 io()->success(\sprintf('The "%s" channel now uses the "%s" theme.', $channel, $theme));
+
+                return 0;
             },
         ];
 
